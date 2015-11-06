@@ -9,7 +9,7 @@ library("stringr")
 Male <- fread("Data/Male/Data.csv", skip = 1)
 Female <- fread("Data/Female/Data.csv", skip = 1)
 
-# Population (https://www-genesis.destatis.de/genesis/online/data;jsessionid=3E363A53B754270EF49719C03276194A.tomcat_GO_2_1?operation=abruftabelleBearbeiten&levelindex=1&levelid=1446829857385&auswahloperation=abruftabelleAuspraegungAuswaehlen&auswahlverzeichnis=ordnungsstruktur&auswahlziel=werteabruf&selectionname=12411-0006&auswahltext=%23Z-31.12.2012%2C31.12.2011%2C31.12.2010%2C31.12.2009%2C31.12.2008%2C31.12.2007%2C31.12.2006%2C31.12.2005%2C31.12.2004%2C31.12.2003&nummer=5&variable=2&name=NAT&werteabruf=Werteabruf)
+# Population https://www-genesis.destatis.de/genesis/online/data;jsessionid=F70E6AD50EA5A31585D5D88F43F4D69F.tomcat_GO_1_1?operation=abruftabelleBearbeiten&levelindex=1&levelid=1446842451376&auswahloperation=abruftabelleAuspraegungAuswaehlen&auswahlverzeichnis=ordnungsstruktur&auswahlziel=werteabruf&selectionname=12411-0006&auswahltext=%23Z-31.12.2014%2C31.12.2013%2C31.12.2012%2C31.12.2011%2C31.12.2010%2C31.12.2009%2C31.12.2008%2C31.12.2007%2C31.12.2006%2C31.12.2005%2C31.12.2004%2C31.12.2003%2C31.12.2002%2C31.12.2001&nummer=5&variable=2&name=GES&werteabruf=Werteabruf
 Population <- read.csv2("data/12411-0006.csv", skip = 7, stringsAsFactors = FALSE)
 ################################################################################
 
@@ -82,15 +82,15 @@ parseData <- function(dt, sex = NULL){
   
   # Remove all ages we are not going to keep
   drop.index <- c(seq(ind[1] + 1,
-                    range(ind)[2] - 1,
-                    by = 2), ncol(df))
+                      range(ind)[2] - 1,
+                      by = 2), ncol(df))
   df <- df[, !names(df) %in% nam[drop.index]]
   
   # Fix names
   names(df) <- gsub("\\..", "-", names(df))
   names(df) <- gsub('4$', "9", names(df))
   names(df)[ncol(df)] <- "A70+"
-
+  
   # Return data.frame
   return(df)
 }
@@ -109,8 +109,8 @@ parsePopulation <- function(df){
   ind <- which(is.na(Population$Insgesamt))
   Population <- Population[-ind, ]
   
-  # Only need whole population
-  Population$Ausl.nder <- NULL; Population$Deutsche <- NULL
+  # Don't need whole population
+  Population$Insgesamt <- NULL
   
   # Make year and age work-with-able
   Population$X.1 <- gsub("\\-", "", str_sub(Population$X.1, start = 1, end = 2))
@@ -128,7 +128,7 @@ parsePopulation <- function(df){
   
   # Sum over population by age group and year
   Population2 <- Population %>% group_by(X, Age) %>%
-    summarise(Insgesamt = sum(Insgesamt))
+    summarise(Male = sum(m.nnlich), Female = sum(weiblich))
   
   # For easy left_join
   Population2$Age <- paste0("A", Population2$Age, "-", Population2$Age/10, "9")
@@ -139,15 +139,22 @@ parsePopulation <- function(df){
   
   # Long-format for the data 
   df <- melt(df, id.vars = c("Time", "Sex", "season", "week", "date"),
-                   variable.name = "Age", value.name = "Cases",
-                   variable.factor = FALSE)
+             variable.name = "Age", value.name = "Cases",
+             variable.factor = FALSE)
   df$Age <- as.character(df$Age)
   
   # Do the left_join
   complete.data <- suppressMessages(left_join(df, Population2))
   
-  # Insgesamt -> Population
-  names(complete.data)[ncol(complete.data)] <- "Population"
+  # Population column based on sex
+  complete.data$Population <- NA
+  ind <- which(complete.data$Sex == "Male")
+  complete.data$Population[ind] = complete.data$Male[ind]
+  ind <- which(complete.data$Sex == "Female")
+  complete.data$Population[ind] = complete.data$Female[ind]
+  
+  # Remove male and female column
+  complete.data <- complete.data %>% select(-Male, -Female)
   
   return(complete.data)
 }
