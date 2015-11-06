@@ -164,4 +164,6 @@ alldata <- bind_rows(Male, Female)
 # Make wide format and insert population
 alldata <- parsePopulation(alldata)
 
+#save(alldata, file = "Data/alldata.RData")
+#write.csv(alldata, file = "Data/alldata.csv")
 
