@@ -61,7 +61,8 @@ parseData <- function(dt, sex = NULL){
   dt$week_calender <- isoweek(dt$date)
   
   # Get the calender year
-  dt$season_calender <- as.character(year(dt$date))
+  #dt$season_calender <- as.character(year(dt$date))
+  dt$season_calender <- gsub("-[A-z 0-9]*", "", dt$Time)
   
   # Make a week column with displaced weeks (week 1 is calender week 31)
   dt$week <- dt$week_calender
@@ -76,7 +77,7 @@ parseData <- function(dt, sex = NULL){
   # Add outbreak indicator
   dt$o104wk <- as.numeric(dt$season == "2010" & dt$week >= 43)
   
-  
+  test <- dt %>% filter(week == 23)
   # Remove dates not "supposed" to be used
   dt <- dt %>% 
     filter(!(season < 2003 | season > 2011)) #%>%
@@ -114,6 +115,35 @@ parseData <- function(dt, sex = NULL){
   names(df) <- gsub('4$', "9", names(df))
   names(df)[ncol(df)] <- "A70+"
   
+  # Randomly move cases in week 53 to week 1 or 52
+  set.seed("53")
+  df.week.53 <- df %>% filter(week_calender == 53)
+  
+  # Ugly double for loop. 
+  # Loop over both seasons
+  for(s in df.week.53$season){
+    # Indexes for adding the randomly selected cases to
+    df.ind.1 <- which(df$season == s & df$week_calender == 1)
+    df.ind.52 <- which(df$season == s & df$week_calender == 52)
+    #Loop over all Age groups
+    for(A in names(df.week.53)[grep("A", names(df.week.53))]){
+      # Row index from season
+      ind <- which(df.week.53$season == s)
+      # Pick out how many cases to distribute
+      size <- df.week.53[ind, A]
+      # Randomly select a part for week 1
+      week1 <- rbinom(n = 1, size = size, p = 0.5)
+      # The rest for week 52
+      week52 <- size - week1
+      
+      # Add cases
+      df[df.ind.52, A] <- df[df.ind.52, A] + week52
+      df[df.ind.1, A] <- df[df.ind.1, A] + week1
+    }
+    # Remove row with week 53
+    df.ind.53 <- which(df$season == s & df$week_calender == 53)
+    df <- df[-df.ind.53, ]
+  }
   # Return data.frame
   return(df)
 }
@@ -199,3 +229,4 @@ alldata <- parsePopulation(alldata)
 
 #save(alldata, file = "Data/alldata.RData")
 #write.csv(alldata, file = "Data/alldata.csv")
+
