@@ -39,6 +39,9 @@ parseData <- function(dt, sex = NULL){
   #   A nice looking data.frame
   #   
   
+  # Set empty strings to 0
+  dt[dt == ""] <- "0"
+  
   # Remove 'Unknown' column
   dt[, Unknown := NULL]
   
@@ -48,22 +51,42 @@ parseData <- function(dt, sex = NULL){
   # Set sex
   dt$Sex <- sex
   
-  # Set season
-  dt$season <- gsub('-[A-z 0-9]*', "", dt$Time)
-  
-  # Set week
+  # Clean the Time column for parsing
   dt$Time <- gsub("w", "W", dt$Time)
+  
+  # Make a column with the date
   dt$date <- parseTime(dt$Time)
-  dt$week <- isoweek(dt$date)
+  
+  # Get the calender week
+  dt$week_calender <- isoweek(dt$date)
+  
+  # Get the calender year
+  dt$season_calender <- as.character(year(dt$date))
+  
+  # Make a week column with displaced weeks (week 1 is calender week 31)
+  dt$week <- dt$week_calender
+  ind <- which(dt$week_calender >= 31)
+  dt$week[ind] <- dt$week[ind] - 30
+  dt$week[-ind] <- dt$week[-ind] + 22
+  
+  # Make a season column with season based on the above weeks
+  dt$season <- dt$season_calender
+  dt$season[-ind] <- as.character(as.numeric(dt$season[-ind]) - 1)
+  
+  # Add outbreak indicator
+  dt$o104wk <- as.numeric(dt$season == "2010" & dt$week >= 43)
+  
   
   # Remove dates not "supposed" to be used
   dt <- dt %>% 
-    filter(!(season < 2003 | season > 2013)) %>%
-    filter(!(season == 2003 & week < 31)) %>% 
-    filter(!(season == 2012 & week > 30))
+    filter(!(season < 2003 | season > 2011)) #%>%
+  #filter(!(season == 2003 & week < 31)) %>% 
+  #filter(!(season == 2012 & week > 30))
   
   # Make age columns integer
-  dt <- dt[, lapply(.SD, as.integer), by = .(Time, Sex, season, week, date)]
+  dt <- dt[, lapply(.SD, as.integer),
+           by = .(Time, Sex, season, week, date, week_calender,
+                  season_calender, o104wk)]
   
   # Convert to data.frame
   df <- as.data.frame(dt)
@@ -138,12 +161,15 @@ parsePopulation <- function(df){
   Population2$X.1 <- NULL
   
   # Long-format for the data 
-  df <- melt(df, id.vars = c("Time", "Sex", "season", "week", "date"),
+  df <- melt(df, id.vars = c("Time", "Sex", "season", "week", "date",
+                             "week_calender", "season_calender", "o104wk"),
              variable.name = "Age", value.name = "Cases",
              variable.factor = FALSE)
   df$Age <- as.character(df$Age)
   
-  # Do the left_join
+  # Do the left_join (joining by "season" and "Age") The population is
+  # counted at end of each year which is approximately in the middle
+  # of the "season" year and thus the join makes sense.
   complete.data <- suppressMessages(left_join(df, Population2))
   
   # Population column based on sex
@@ -154,7 +180,7 @@ parsePopulation <- function(df){
   complete.data$Population[ind] = complete.data$Female[ind]
   
   # Remove male and female column
-  complete.data <- complete.data %>% select(-Male, -Female)
+  complete.data <- complete.data %>% dplyr::select(-Male, -Female)
   
   return(complete.data)
 }
@@ -173,4 +199,3 @@ alldata <- parsePopulation(alldata)
 
 #save(alldata, file = "Data/alldata.RData")
 #write.csv(alldata, file = "Data/alldata.csv")
-
