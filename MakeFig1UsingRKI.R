@@ -37,7 +37,7 @@ labels[-ind] <- ""
 # Do the plotting in way to many lines
 # ADD LEGEND! Colours might be nice. Maybe write "Outbreak period" and
 # "Sprout warning issued".
-pdf("Figure1RKI.pdf", width=6, height=4, paper='special') 
+pdf("Figures/Figure1RKI.pdf", width=6, height=4, paper='special') 
 ggplot(data = alldata2010, aes(x = week, y = incidence)) +
   geom_line() +
   geom_line(aes(y = ymed), linetype="dashed") +

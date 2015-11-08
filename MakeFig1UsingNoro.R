@@ -1,7 +1,3 @@
-##
- # THIS ONE CAN BE USED AS A TEMPLATE. WE SHOULD DO THIS FOR THE OTHER DATA.
-##
-
 # Load packages
 library("data.table")
 library("ggplot2")
@@ -34,7 +30,7 @@ labels[-ind] <- ""
 # Do the plotting in way to many lines
 # ADD LEGEND! Colours might be nice. Maybe write "Outbreak period" and
 # "Sprout warning issued".
-pdf("Figure1.pdf", width=6, height=4, paper='special') 
+pdf("Figures/Figure1Noro.pdf", width=6, height=4, paper='special') 
 ggplot(data = noro2010, aes(x = time, y = y)) +
   geom_line() +
   geom_line(aes(y = ymed), linetype="dashed") +
