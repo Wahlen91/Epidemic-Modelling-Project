@@ -13,7 +13,7 @@ alldata$cos4 <- cos(4*pi*alldata$week/52)
 
 # Split the outbreak weeks into before and after as done in Bernard et al (2014)
 alldata$o104wk.before <- as.numeric(alldata$o104wk == 1 & alldata$week_calender %in% 21:23)
-alldata$o104wk.after <- as.numeric(!(alldata$o104wk == 1 & alldata$week_calender %in% 21:23))
+alldata$o104wk.after <- as.numeric(alldata$o104wk == 1 & !alldata$week_calender %in% 21:23)
 
 # Construct the model without age and sex stratification
 model <- glm.nb(Cases ~ offset(log(Population)) + season + season:sin2 +
