@@ -39,6 +39,9 @@ parseData <- function(dt, sex = NULL){
   #   A nice looking data.frame
   #   
   
+  # Set empty strings to 0
+  dt[dt == ""] <- "0"
+  
   # Remove 'Unknown' column
   dt[, Unknown := NULL]
   
@@ -48,22 +51,43 @@ parseData <- function(dt, sex = NULL){
   # Set sex
   dt$Sex <- sex
   
-  # Set season
-  dt$season <- gsub('-[A-z 0-9]*', "", dt$Time)
-  
-  # Set week
+  # Clean the Time column for parsing
   dt$Time <- gsub("w", "W", dt$Time)
-  dt$date <- parseTime(dt$Time)
-  dt$week <- isoweek(dt$date)
   
+  # Make a column with the date
+  dt$date <- parseTime(dt$Time)
+  
+  # Get the calender week
+  dt$week_calender <- isoweek(dt$date)
+  
+  # Get the calender year
+  #dt$season_calender <- as.character(year(dt$date))
+  dt$season_calender <- gsub("-[A-z 0-9]*", "", dt$Time)
+  
+  # Make a week column with displaced weeks (week 1 is calender week 31)
+  dt$week <- dt$week_calender
+  ind <- which(dt$week_calender >= 31)
+  dt$week[ind] <- dt$week[ind] - 30
+  dt$week[-ind] <- dt$week[-ind] + 22
+  
+  # Make a season column with season based on the above weeks
+  dt$season <- dt$season_calender
+  dt$season[-ind] <- as.character(as.numeric(dt$season[-ind]) - 1)
+  
+  # Add outbreak indicator
+  dt$o104wk <- as.numeric(dt$season == "2010" & dt$week >= 43)
+  
+  test <- dt %>% filter(week == 23)
   # Remove dates not "supposed" to be used
   dt <- dt %>% 
-    filter(!(season < 2003 | season > 2013)) %>%
-    filter(!(season == 2003 & week < 31)) %>% 
-    filter(!(season == 2012 & week > 30))
+    filter(!(season < 2003 | season > 2011)) #%>%
+  #filter(!(season == 2003 & week < 31)) %>% 
+  #filter(!(season == 2012 & week > 30))
   
   # Make age columns integer
-  dt <- dt[, lapply(.SD, as.integer), by = .(Time, Sex, season, week, date)]
+  dt <- dt[, lapply(.SD, as.integer),
+           by = .(Time, Sex, season, week, date, week_calender,
+                  season_calender, o104wk)]
   
   # Convert to data.frame
   df <- as.data.frame(dt)
@@ -91,6 +115,35 @@ parseData <- function(dt, sex = NULL){
   names(df) <- gsub('4$', "9", names(df))
   names(df)[ncol(df)] <- "A70+"
   
+  # Randomly move cases in week 53 to week 1 or 52
+  set.seed("53")
+  df.week.53 <- df %>% filter(week_calender == 53)
+  
+  # Ugly double for loop. 
+  # Loop over both seasons
+  for(s in df.week.53$season){
+    # Indexes for adding the randomly selected cases to
+    df.ind.1 <- which(df$season == s & df$week_calender == 1)
+    df.ind.52 <- which(df$season == s & df$week_calender == 52)
+    #Loop over all Age groups
+    for(A in names(df.week.53)[grep("A", names(df.week.53))]){
+      # Row index from season
+      ind <- which(df.week.53$season == s)
+      # Pick out how many cases to distribute
+      size <- df.week.53[ind, A]
+      # Randomly select a part for week 1
+      week1 <- rbinom(n = 1, size = size, p = 0.5)
+      # The rest for week 52
+      week52 <- size - week1
+      
+      # Add cases
+      df[df.ind.52, A] <- df[df.ind.52, A] + week52
+      df[df.ind.1, A] <- df[df.ind.1, A] + week1
+    }
+    # Remove row with week 53
+    df.ind.53 <- which(df$season == s & df$week_calender == 53)
+    df <- df[-df.ind.53, ]
+  }
   # Return data.frame
   return(df)
 }
@@ -138,12 +191,15 @@ parsePopulation <- function(df){
   Population2$X.1 <- NULL
   
   # Long-format for the data 
-  df <- melt(df, id.vars = c("Time", "Sex", "season", "week", "date"),
+  df <- melt(df, id.vars = c("Time", "Sex", "season", "week", "date",
+                             "week_calender", "season_calender", "o104wk"),
              variable.name = "Age", value.name = "Cases",
              variable.factor = FALSE)
   df$Age <- as.character(df$Age)
   
-  # Do the left_join
+  # Do the left_join (joining by "season" and "Age") The population is
+  # counted at end of each year which is approximately in the middle
+  # of the "season" year and thus the join makes sense.
   complete.data <- suppressMessages(left_join(df, Population2))
   
   # Population column based on sex
@@ -154,7 +210,7 @@ parsePopulation <- function(df){
   complete.data$Population[ind] = complete.data$Female[ind]
   
   # Remove male and female column
-  complete.data <- complete.data %>% select(-Male, -Female)
+  complete.data <- complete.data %>% dplyr::select(-Male, -Female)
   
   return(complete.data)
 }
