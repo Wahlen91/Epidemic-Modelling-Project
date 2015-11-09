@@ -36,3 +36,16 @@ est.as <- cbind(Estimate = model.as$coefficients, confint.default(model.as))
 
 # Exponentiate
 round(exp(est.as), digits = 2)
+
+# Model with age and sex stratification and split outbreak on before and after
+model.as.ba <- glm.nb(Cases ~ offset(log(Population)) + season + season:sin2 +
+                        season:cos2 + season:sin4 + season:cos4 + Age + Sex +
+                        Age:Sex:o104wk.before + Age:Sex:o104wk.after,
+                      data = alldata, link = "log")
+
+# Take out the estimates and respective Wald 95% confidence intervals
+est.as.ba <- cbind(Estimate = model.as.ba$coefficients,
+                   confint.default(model.as.ba))
+
+# Exponentiate
+round(exp(est.as.ba), digits = 2)
