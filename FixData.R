@@ -10,9 +10,10 @@ Male <- fread("Data/Male/Data.csv", skip = 1)
 Female <- fread("Data/Female/Data.csv", skip = 1)
 
 # Population https://www-genesis.destatis.de/genesis/online/data;jsessionid=F70E6AD50EA5A31585D5D88F43F4D69F.tomcat_GO_1_1?operation=abruftabelleBearbeiten&levelindex=1&levelid=1446842451376&auswahloperation=abruftabelleAuspraegungAuswaehlen&auswahlverzeichnis=ordnungsstruktur&auswahlziel=werteabruf&selectionname=12411-0006&auswahltext=%23Z-31.12.2014%2C31.12.2013%2C31.12.2012%2C31.12.2011%2C31.12.2010%2C31.12.2009%2C31.12.2008%2C31.12.2007%2C31.12.2006%2C31.12.2005%2C31.12.2004%2C31.12.2003%2C31.12.2002%2C31.12.2001&nummer=5&variable=2&name=GES&werteabruf=Werteabruf
-Population <- read.csv2("data/12411-0006.csv", skip = 7, stringsAsFactors = FALSE)
-################################################################################
+Population <- read.csv2("data/12411-0006.csv", skip = 7, stringsAsFactors = FALSE,
+                        fileEncoding = "Latin1")
 
+################################################################################
 ################################################################################
 parseTime <- function(string){
   # Function to parse dates of the form 2009-W45.
@@ -77,12 +78,12 @@ parseData <- function(dt, sex = NULL){
   # Add outbreak indicator
   dt$o104wk <- as.numeric(dt$season == "2010" & dt$week >= 43)
   
-  test <- dt %>% filter(week == 23)
   # Remove dates not "supposed" to be used
+  # We keep 2012 week 1 and 2 and 2002 week 51 and 52 for smoothing of population
   dt <- dt %>% 
-    filter(!(season < 2003 | season > 2011)) #%>%
-  #filter(!(season == 2003 & week < 31)) %>% 
-  #filter(!(season == 2012 & week > 30))
+    filter((!(season < 2003 | season > 2011)) | 
+             (season == 2012 & week %in% c(1,2)) | 
+             (season == 2002 & week %in% c(51,52)))
   
   # Make age columns integer
   dt <- dt[, lapply(.SD, as.integer),
@@ -179,9 +180,12 @@ parsePopulation <- function(df){
   # Change 80 year olds to 70+
   Population$Age[which(Population$Age == 80)] <- 70
   
+  # Lazy fix of encoding problems
+  names(Population)[3] <- "maennlich"
+  
   # Sum over population by age group and year
   Population2 <- Population %>% group_by(X, Age) %>%
-    summarise(Male = sum(m.nnlich), Female = sum(weiblich))
+    summarise(Male = sum(maennlich), Female = sum(weiblich))
   
   # For easy left_join
   Population2$Age <- paste0("A", Population2$Age, "-", Population2$Age/10, "9")
