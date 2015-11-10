@@ -218,6 +218,43 @@ parsePopulation <- function(df){
   
   return(complete.data)
 }
+
+MovingAvg <- function(Dat){
+  # Function to smooth strata wise population 
+  # based on Agegroup and Sex. 
+  # Smoothing is done according to a centered five-week moving avarage.
+  #
+  # data - dataframe which has the variables Sex and Age in it. 
+  # AgeGroups - the agegroups to use when smoothing
+  # Sex - gender which is also used when smoothing
+  
+  InnerFUN <- function(data,AgeGroup,Sexe){
+    Sub.dat <- data %>% 
+      filter(Age == AgeGroup & Sex == Sexe) %>%
+      arrange(desc(Time))
+    
+    MA.Vals <- transform(Sub.dat,
+                         PopSmooth=as.integer(stats::filter(Sub.dat$Population,
+                                                            rep(1/5,5), sides=2, method="convolution"))
+    )
+    
+    return(MA.Vals)
+  }
+  
+  Ages <- unique(alldata$Age)
+  Sexes <- unique(alldata$Sex) # only contains Male and Female
+  
+  # Run innerFUN on all ages for both Male and Female
+  Male.Vals <- lapply(X=Ages, Sexe=Sexes[1], data=Dat, FUN=InnerFUN)
+  Fem.Vals <- lapply(X=Ages, Sexe=Sexes[2], data=Dat, FUN=InnerFUN)
+  
+  temp.dat <- bind_rows(c(Male.Vals,Fem.Vals))
+  temp.dat <- suppressMessages(left_join(Dat,temp.dat))
+  
+  # Remove all the rows with NA in our smoothed pop.
+  temp.dat <- temp.dat %>% dplyr::filter(PopSmooth != "NA")
+  return(temp.dat)
+}
 ################################################################################
 
 
@@ -230,6 +267,9 @@ alldata <- bind_rows(Male, Female)
 
 # Make wide format and insert population
 alldata <- parsePopulation(alldata)
+
+# Create smoothed population variable.
+alldata <- MovingAvg(alldata)
 
 #save(alldata, file = "Data/alldata.RData")
 #write.csv(alldata, file = "Data/alldata.csv")
