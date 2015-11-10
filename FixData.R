@@ -77,12 +77,12 @@ parseData <- function(dt, sex = NULL){
   # Add outbreak indicator
   dt$o104wk <- as.numeric(dt$season == "2010" & dt$week >= 43)
   
-  test <- dt %>% filter(week == 23)
   # Remove dates not "supposed" to be used
+  # We keep 2012 week 1 and 2 and 2002 week 51 and 52 for smoothing of population
   dt <- dt %>% 
-    filter(!(season < 2003 | season > 2011)) #%>%
-  #filter(!(season == 2003 & week < 31)) %>% 
-  #filter(!(season == 2012 & week > 30))
+    filter((!(season < 2003 | season > 2011)) | 
+             (season == 2012 & week %in% c(1,2)) | 
+             (season == 2002 & week %in% c(51,52)))
   
   # Make age columns integer
   dt <- dt[, lapply(.SD, as.integer),
@@ -178,6 +178,10 @@ parsePopulation <- function(df){
   
   # Change 80 year olds to 70+
   Population$Age[which(Population$Age == 80)] <- 70
+  
+  # Since the encoding was not changed (lazy solution) we do a lazy fix for
+  # windows
+  if(Sys.info()['sysname'] == "Windows") names(Population)[3] <- "m.nnlich"
   
   # Sum over population by age group and year
   Population2 <- Population %>% group_by(X, Age) %>%
