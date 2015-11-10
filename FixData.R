@@ -220,27 +220,31 @@ parsePopulation <- function(df){
 }
 
 MovingAvg <- function(Dat){
-  # Function to smooth strata wise population 
-  # based on Agegroup and Sex. 
+  # Function to smooth strata wise population based on Agegroup and Sex. 
   # Smoothing is done according to a centered five-week moving avarage.
   #
-  # data - dataframe which has the variables Sex and Age in it. 
-  # AgeGroups - the agegroups to use when smoothing
-  # Sex - gender which is also used when smoothing
+  # Args:
+  #   Dat: data.frame which has the variables Sex, Age, Population and date in it. 
+  #
+  # Returns:
+  #   The original data.frame with a new column for the smoother population.
+  #    Also first two and last two weeks are removed.
+  #  
   
-  InnerFUN <- function(data,AgeGroup,Sexe){
+  InnerFUN <- function(data, AgeGroup, Sexe){
     Sub.dat <- data %>% 
       filter(Age == AgeGroup & Sex == Sexe) %>%
       arrange(desc(Time))
     
     MA.Vals <- transform(Sub.dat,
-                         PopSmooth=as.integer(stats::filter(Sub.dat$Population,
-                                                            rep(1/5,5), sides=2, method="convolution"))
-    )
-    
+                         PopSmooth = as.integer(
+                           stats::filter(Sub.dat$Population, 
+                                         rep(1/5,5), sides=2,
+                                         method="convolution")))
     return(MA.Vals)
   }
   
+  # Find unique Ages and Sexes for use in InnerFUN
   Ages <- unique(alldata$Age)
   Sexes <- unique(alldata$Sex) # only contains Male and Female
   
@@ -248,6 +252,7 @@ MovingAvg <- function(Dat){
   Male.Vals <- lapply(X=Ages, Sexe=Sexes[1], data=Dat, FUN=InnerFUN)
   Fem.Vals <- lapply(X=Ages, Sexe=Sexes[2], data=Dat, FUN=InnerFUN)
   
+  # Make one data.frame from data.frame of all combination of Sex and Age
   temp.dat <- bind_rows(c(Male.Vals,Fem.Vals))
   temp.dat <- suppressMessages(left_join(Dat,temp.dat))
   
@@ -256,7 +261,6 @@ MovingAvg <- function(Dat){
   return(temp.dat)
 }
 ################################################################################
-
 
 # Parse data
 Male <- parseData(Male, sex = "Male")
