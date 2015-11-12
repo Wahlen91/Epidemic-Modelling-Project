@@ -10,8 +10,16 @@ Male <- fread("Data/Male/Data.csv", skip = 1)
 Female <- fread("Data/Female/Data.csv", skip = 1)
 
 # Population https://www-genesis.destatis.de/genesis/online/data;jsessionid=F70E6AD50EA5A31585D5D88F43F4D69F.tomcat_GO_1_1?operation=abruftabelleBearbeiten&levelindex=1&levelid=1446842451376&auswahloperation=abruftabelleAuspraegungAuswaehlen&auswahlverzeichnis=ordnungsstruktur&auswahlziel=werteabruf&selectionname=12411-0006&auswahltext=%23Z-31.12.2014%2C31.12.2013%2C31.12.2012%2C31.12.2011%2C31.12.2010%2C31.12.2009%2C31.12.2008%2C31.12.2007%2C31.12.2006%2C31.12.2005%2C31.12.2004%2C31.12.2003%2C31.12.2002%2C31.12.2001&nummer=5&variable=2&name=GES&werteabruf=Werteabruf
-Population <- read.csv2("data/12411-0006.csv", skip = 7, stringsAsFactors = FALSE,
-                        fileEncoding = "Latin1")
+Population <-
+  try(suppressWarnings(
+    read.csv2("data/12411-0006.csv", skip = 7, stringsAsFactors = FALSE,
+              fileEncoding = "Latin1")), silent = TRUE)
+
+# If above did not work 
+if (inherits(Population, 'try-error')) {
+  Population <- read.csv2("data/12411-0006.csv", skip = 7,
+                          stringsAsFactors = FALSE)
+}
 
 ################################################################################
 ################################################################################
@@ -98,12 +106,12 @@ parseData <- function(dt, sex = NULL){
   ind <- grep("[\\.. +]", nam)
   
   # Loop over columns and add to previous
-  for(i in seq(ind[1], range(ind)[2]-2, by = 2)){
+  for(i in seq(ind[1], range(ind)[2] - 2, by = 2)){
     df[, i] <- df[, i] + df[, i + 1]
   }
   
   # Also put 80+ into 70+
-  df[, ncol(df)-2] <- df[, ncol(df)-2] + df[, ncol(df)]
+  df[, ncol(df) - 2] <- df[, ncol(df) - 2] + df[, ncol(df)]
   
   # Remove all ages we are not going to keep
   drop.index <- c(seq(ind[1] + 1,
@@ -122,18 +130,18 @@ parseData <- function(dt, sex = NULL){
   
   # Ugly double for loop. 
   # Loop over both seasons
-  for(s in df.week.53$season){
+  for(s in df.week.53$season) {
     # Indexes for adding the randomly selected cases to
     df.ind.1 <- which(df$season == s & df$week_calender == 1)
     df.ind.52 <- which(df$season == s & df$week_calender == 52)
     #Loop over all Age groups
-    for(A in names(df.week.53)[grep("A", names(df.week.53))]){
+    for(A in names(df.week.53)[grep("A", names(df.week.53))]) {
       # Row index from season
       ind <- which(df.week.53$season == s)
       # Pick out how many cases to distribute
       size <- df.week.53[ind, A]
       # Randomly select a part for week 1
-      week1 <- rbinom(n = 1, size = size, p = 0.5)
+      week1 <- rbinom(n = 1, size = size, prob = 0.5)
       # The rest for week 52
       week52 <- size - week1
       
@@ -214,7 +222,7 @@ parsePopulation <- function(df){
   complete.data$Population[ind] = complete.data$Female[ind]
   
   # Remove male and female column
-  complete.data <- complete.data %>% dplyr::select(-Male, -Female)
+  complete.data <- complete.data %>% dplyr::select(c(-Male, -Female))
   
   return(complete.data)
 }
@@ -239,22 +247,26 @@ MovingAvg <- function(Dat){
     MA.Vals <- transform(Sub.dat,
                          PopSmooth = as.integer(
                            stats::filter(Sub.dat$Population, 
-                                         rep(1/5,5), sides=2,
-                                         method="convolution")))
+                                         rep(1/5, 5), sides = 2,
+                                         method = "convolution")))
     return(MA.Vals)
   }
   
   # Find unique Ages and Sexes for use in InnerFUN
-  Ages <- unique(alldata$Age)
-  Sexes <- unique(alldata$Sex) # only contains Male and Female
+  Ages <- unique(Dat$Age)
+  Sexes <- unique(Dat$Sex) # only contains Male and Female
   
   # Run innerFUN on all ages for both Male and Female
-  Male.Vals <- lapply(X=Ages, Sexe=Sexes[1], data=Dat, FUN=InnerFUN)
-  Fem.Vals <- lapply(X=Ages, Sexe=Sexes[2], data=Dat, FUN=InnerFUN)
+  Male.Vals <- lapply(
+    X = Ages, Sexe = Sexes[1], data = Dat, FUN = InnerFUN
+  )
+  Fem.Vals <- lapply(
+    X = Ages, Sexe = Sexes[2], data = Dat, FUN = InnerFUN
+  )
   
-  # Make one data.frame from data.frame of all combination of Sex and Age
-  temp.dat <- bind_rows(c(Male.Vals,Fem.Vals))
-  temp.dat <- suppressMessages(left_join(Dat,temp.dat))
+  # Make one data.frame from data.frames of all combination of Sex and Age
+  temp.dat <- bind_rows(c(Male.Vals, Fem.Vals))
+  temp.dat <- suppressMessages(left_join(Dat, temp.dat))
   
   # Remove all the rows with NA in our smoothed pop.
   temp.dat <- temp.dat %>% dplyr::filter(PopSmooth != "NA")
