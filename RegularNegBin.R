@@ -2,8 +2,8 @@
 library("MASS")
 
 # Load data
-load("Data/alldata.RData")
-#alldata <- read.csv("Data/alldata.csv")
+#load("Data/alldata.RData")
+alldata <- read.csv("Data/alldata.csv")
 
 # Make data for g(t)
 alldata$sin2 <- sin(2*pi*alldata$week/52)
