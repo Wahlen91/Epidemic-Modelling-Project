@@ -2,15 +2,15 @@
 library("MASS")
 
 # Load data
-<<<<<<< HEAD
 load("Data/alldata.RData")
 #alldata <- read.csv("Data/alldata.csv")
+
+# Source functions
 source("MakeFigResid.R")
-=======
+
 #load("Data/alldata.RData")
 alldata <- read.csv("Data/alldata.csv")
 
->>>>>>> Wahlen91/master
 # Make data for g(t)
 alldata$sin2 <- sin(2*pi*alldata$week/52)
 alldata$sin4 <- sin(4*pi*alldata$week/52)
