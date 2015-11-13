@@ -26,9 +26,9 @@ Plot.Resids <- function(Z){
   N.row <- dim(Z)[1]
   plot.df$nrow <- seq(1, N.row, 1)
   p<- ggplot(plot.df, aes(y=value, x=nrow, color=AgeClass)) +
-    geom_point(aes(shape=Sex)) +
+    geom_point() +
     theme_bw() +
-    facet_grid(.~variable) +
+    facet_wrap(Sex~variable, ncol=2,scales = "free_y") +
     scale_color_brewer("Age class", palette = 2, type="div")
   return(p)
 }
