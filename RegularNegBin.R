@@ -34,6 +34,7 @@ model <- glm.nb(Cases ~ offset(log(Population)) + season + season:sin2 +
 model.Smooth <- glm.nb(Cases ~ offset(log(PopSmooth)) + season + season:sin2 +
                   season:cos2 + season:sin4 + season:cos4 +
                   o104wk, data = alldata, link = "log")
+#save(model,model.Smooth,file="NegBinModel.RData")
 
 # Take out the estimates and respective Wald 95% confidence intervals
 est <- cbind(Estimate = model$coefficients, confint.default(model))
@@ -43,6 +44,7 @@ est.Smooth <- cbind(Estimate = model.Smooth$coefficients, confint.default(model.
 # Exponentiate
 round(exp(est), digits = 2)
 round(exp(est.Smooth), digits=2)
+
 # Model with age and sex stratification
 model.as <- glm.nb(Cases ~ offset(log(Population)) + season + season:sin2 +
                   season:cos2 + season:sin4 + season:cos4 + Age + Sex +
