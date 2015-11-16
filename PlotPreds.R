@@ -4,10 +4,10 @@ library("dplyr")
 
 # Load data
 load("Data/alldata.RData")
-load("NegBinModel.RData")
+load("Models/NegBinModel.RData")
 
 # Adding the predicted cases (i.e. fitted values) to alldata
-alldata$PredCases <- model$fitted.values
+alldata$PredCases <- model.Smooth$fitted.values
 
 # Get aggregated data, (not using PopSmooth)
 alldata <- alldata %>% group_by(date, week) %>%

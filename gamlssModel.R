@@ -27,13 +27,14 @@ mu.formula <-
 sigma.formula <- ~-1 + Age:Sex
 
 # Construct the model
-model <- gamlss(
+GAMlssModel <- gamlss(
   formula = mu.formula, sigma.formula = sigma.formula,
   data = alldata,
   family = NBI(mu.link = "log", sigma.link = "log"),
   trace = FALSE
 )
 
+save(GAMlssModel, file="Models/GAMlssModel.RData")
 # Summary of model.
-summary(model, type = "qr")
+summary(GAMlssModel, type = "qr")
 
