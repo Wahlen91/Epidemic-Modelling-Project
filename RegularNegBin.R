@@ -3,13 +3,13 @@ library("MASS")
 
 # Load data
 load("Data/alldata.RData")
-#alldata <- read.csv("Data/alldata.csv")
+# alldata <- read.csv("Data/alldata.csv")
 
 # Source functions
 source("MakeFigResid.R")
 
-#load("Data/alldata.RData")
-alldata <- read.csv("Data/alldata.csv")
+# load("Data/alldata.RData")
+# alldata <- read.csv("Data/alldata.csv")
 
 # Make data for g(t)
 alldata$sin2 <- sin(2*pi*alldata$week/52)
@@ -36,7 +36,6 @@ model <- glm.nb(Cases ~ offset(log(Population)) + season + season:sin2 +
 model.Smooth <- glm.nb(Cases ~ offset(log(PopSmooth)) + season + season:sin2 +
                   season:cos2 + season:sin4 + season:cos4 +
                   o104wk, data = alldata, link = "log")
-#save(model, model.Smooth, file = "NegBinModel.RData")
 
 # Take out the estimates and respective Wald 95% confidence intervals
 est <- cbind(Estimate = model$coefficients, confint.default(model))
@@ -89,6 +88,7 @@ round(exp(est.as.ba.Smooth), digits = 2)
 # change between smoothed counts and non-smoothed counts.
 #round(exp(est.as.ba), digits = 2)-round(exp(est.as.ba.Smooth), digits=2)
 
+save(model.Smooth, model.as.Smooth, model.as.ba.Smooth, file = "Models/NegBinModel.RData")
 # Make a list of all relevant models
 Models <- list(model.Smooth, model.as.Smooth, model.as.ba.Smooth)
 
@@ -98,12 +98,12 @@ resid.lst <- lapply(Models, Resid.FUN, AgeClass = alldata$Age, Sex = alldata$Sex
 # Get list figures
 Figs <- lapply(resid.lst, Plot.Resids)
 
-#pdf("Figures/ModelResidualsModel.pdf", width=6, height = 4, paper="special")
+pdf("Figures/ModelResidualsModel.pdf", width=6, height = 4, paper="special")
 Figs[[1]]
-#dev.off()
-#pdf("Figures/ModelResidualsModel_as.pdf", width=6, height = 4, paper="special")
+dev.off()
+pdf("Figures/ModelResidualsModel_as.pdf", width=6, height = 4, paper="special")
 Figs[[2]]
-#dev.off()
-#pdf("Figures/ModelResidualsModel_as_ba.pdf", width=6, height = 4, paper="special")
+dev.off()
+pdf("Figures/ModelResidualsModel_as_ba.pdf", width=6, height = 4, paper="special")
 Figs[[3]]
-#dev.off()
+dev.off()

@@ -154,12 +154,13 @@ model.control <- list(ar = list(f = ~1,
 )
 
 # Fit the model (takes a while)
-model <- hhh4(dat, control = model.control)
+hhh4Model <- hhh4(dat, control = model.control)
+save(hhh4Model,file="Models/hhh4Model.RData")
 
 # Summary of model
-summary(model, idx2Exp = TRUE, reparamPsi = TRUE)
+summary(hhh4Model, idx2Exp = TRUE, reparamPsi = TRUE)
 
 # Plot the model
 #pdf("Figures/hhh4Plot.pdf", width = 12, height = 8, paper = 'special') 
-plotHHH4_fitted(model, units = 1:16, ylim = c(0, 2500))
+plotHHH4_fitted(hhh4Model, units = 8, ylim = c(0, 2500))
 #dev.off()
