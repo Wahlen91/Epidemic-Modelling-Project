@@ -24,7 +24,7 @@ mu.formula <-
   Cases ~ offset(log(PopSmooth)) + season + season:sin2 +
   season:cos2 + season:sin4 + season:cos4 + Age + Sex +
   Age:Sex:o104wk
-sigma.formula <- ~-1 + Age:Sex
+sigma.formula <- ~ -1 + Age:Sex
 
 # Construct the model
 GAMlssModel <- gamlss(
@@ -34,7 +34,35 @@ GAMlssModel <- gamlss(
   trace = FALSE
 )
 
-save(GAMlssModel, file="Models/GAMlssModel.RData")
+
+# Model without season and periodic function interaction
+mu.wo.season.int.formula <-
+  Cases ~ offset(log(PopSmooth)) + season + sin2 +
+  cos2 + sin4 + cos4 + Age + Sex +
+  Age:Sex:o104wk
+sigma.formula <- ~ -1 + Age:Sex
+GAMlssModel.wo.season.int <- gamlss(
+  formula = mu.wo.season.int.formula, sigma.formula = sigma.formula,
+  data = alldata,
+  family = NBI(mu.link = "log", sigma.link = "log"),
+  trace = FALSE
+)
+
+# Construct model with before and after
+mu.ba.formula <-
+  Cases ~ offset(log(PopSmooth)) + season + season:sin2 +
+  season:cos2 + season:sin4 + season:cos4 + Age + Sex +
+  Age:Sex:o104wk.before + Age:Sex:o104wk.after
+GAMlssModel.ba <- gamlss(
+  formula = mu.ba.formula, sigma.formula = sigma.formula,
+  data = alldata,
+  family = NBI(mu.link = "log", sigma.link = "log"),
+  trace = FALSE
+)
+
+#save(GAMlssModel, GAMlssModel.wo.season.int, GAMlssModel.ba,
+#     file = "Models/GAMlssModel.RData")
+
 # Summary of model.
 summary(GAMlssModel, type = "qr")
 
