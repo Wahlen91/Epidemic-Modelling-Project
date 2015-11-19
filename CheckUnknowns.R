@@ -61,3 +61,6 @@ plot(Female$time, Female$Unknown, type = "l")
 
 # Relative
 total.unknown / total
+
+# Total with unknown
+total + total.unknown
