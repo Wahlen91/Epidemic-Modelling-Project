@@ -1,4 +1,7 @@
 library("xtable")
+library("surveillance")
+library("gamlss")
+library("MASS")
 
 # Load all models from Models directory.
 models <- c("GAMlssModel.RData", "hhh4Model.RData", "NegBinModel.RData")
@@ -28,13 +31,12 @@ names <- sub("Smooth", names , replace="")
 names <- sub("Model", names, replace="")
 names <- gsub("hhh4", "hhh4-", names)
 names <- gsub("GAMlss", "GAMLSS", names)
-names[2] <- gsub("season", "s", names[2])
 
 AicBic.df$Model <- names
-AicBic.df <- select(AicBic.df, Model, AIC, BIC)
+AicBic.df <- dplyr::select(AicBic.df, Model, AIC, BIC)
 
 print(
-  xtable(
+  xtable(digits = 0,
     AicBic.df, label = "TabelMods", caption = "AIC and BIC values for all models.
     The abbrevation ''as.'' stands for ''Age and Sex stratified'' and ''ba.''
     stands for ''Before and After the official announcement''",
