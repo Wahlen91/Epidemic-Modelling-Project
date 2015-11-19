@@ -39,8 +39,8 @@ labels[-ind] <- ""
 # "Sprout warning issued".
 pdf("Figures/Figure1RKI.pdf", width=6, height=4, paper='special') 
 ggplot(data = alldata2010, aes(x = week, y = incidence)) +
-  geom_line() +
-  geom_line(aes(y = ymed), linetype="dashed") +
+  geom_line(aes(linetype="solid")) +
+  geom_line(aes(y = ymed, linetype="dashed")) +
   geom_ribbon(aes(ymin = ymin, ymax = ymax, alpha = 0.01)) +
   xlab("Week of reporting") + ylab("Weekly incidence (per 100,000 population)")+
   scale_y_continuous(expand = c(0,0), breaks = seq(0, 12, 2)) +
@@ -50,5 +50,7 @@ ggplot(data = alldata2010, aes(x = week, y = incidence)) +
   geom_vline(xintercept = c(which(diff(alldata2010$o104wk) != 0) + 1,
                             nrow(alldata2010)),
              linetype = "dashed", colour = "grey") + 
-  guides(alpha = FALSE)
+  scale_alpha("", labels="Range of other seasons") +
+  scale_linetype_manual("", values = c("solid","dashed"),
+                        labels=c("Season 2010/2011","Median other seasons")) 
 dev.off()
