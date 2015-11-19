@@ -36,10 +36,12 @@ AicBic.df$Model <- names
 AicBic.df <- dplyr::select(AicBic.df, Model, AIC, BIC)
 
 print(
-  xtable(digits = 0,
+  xtable(
+    digits = 0,
     AicBic.df, label = "TabelMods", caption = "AIC and BIC values for all models.
     The abbrevation ''as.'' stands for ''Age and Sex stratified'' and ''ba.''
     stands for ''Before and After the official announcement''",
     align = "lccc"
-  ),type = "latex",include.rownames = FALSE, file = "AicBicTable.tex"
+  ),type = "latex", caption.placement = "top", include.rownames = FALSE,
+  file = "AicBicTable.tex"
 )

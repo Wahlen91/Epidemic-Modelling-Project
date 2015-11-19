@@ -203,10 +203,10 @@ f_S4.wo.season.int <-
 
 model.control2 <-
   model.control4 <- model.control6 <- model.control14 <-
-  model.control16 <-
+  model.control16 <- model.control4.ba.wo.strat.od <-
   model.control4.ba <- model.control4.wo.season.int <-
   model.control4.wo.strat.od <- list(
-    ar = list(f = ~ 1, lag = 1),
+    ar = list(f = ~1, lag = 1),
     end = list(f = f_S2,
                offset = population(dat)),
     family = "NegBinM",
@@ -252,6 +252,8 @@ model.control2 <-
   )
 model.control4$end <- list(f = f_S4, offset = population(dat))
 model.control4.ba$end <- list(f = f_S4.ba, offset = population(dat))
+model.control4.ba.wo.strat.od$end <- list(f = f_S4.ba, offset = population(dat))
+model.control4.ba.wo.strat.od$family <- "NegBin1"
 model.control4.wo.season.int$end <- 
   list(f = f_S4.wo.season.int, offset = population(dat))
 model.control4.wo.strat.od$family <- "NegBin1"
@@ -263,6 +265,7 @@ model.control16$end <- list(f = f_S16, offset = population(dat))
 hhh4Model2 <- hhh4(dat, control = model.control2)
 hhh4Model4 <- hhh4(dat, control = model.control4)
 hhh4Model4.ba <- hhh4(dat, control = model.control4.ba)
+hhh4Model4.ba.wo.strat.od <- hhh4(dat, control = model.control4.ba.wo.strat.od)
 hhh4Model4.wo.season.int <- hhh4(dat, control = model.control4.wo.season.int)
 hhh4Model4.wo.strat.od <- hhh4(dat, control = model.control4.wo.strat.od)
 hhh4Model6 <- hhh4(dat, control = model.control6)
@@ -270,7 +273,8 @@ hhh4Model14 <- hhh4(dat, control = model.control14)
 hhh4Model16 <- hhh4(dat, control = model.control16)
 
 
-save(hhh4Model2, hhh4Model4, hhh4Model4.ba, hhh4Model4.wo.season.int,
+save(hhh4Model2, hhh4Model4, hhh4Model4.ba, hhh4Model4.ba.wo.strat.od,
+     hhh4Model4.wo.season.int,
      hhh4Model4.wo.strat.od, hhh4Model6, hhh4Model14, hhh4Model16,
      file = "Models/hhh4Model.RData")
 
