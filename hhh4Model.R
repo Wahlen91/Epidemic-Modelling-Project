@@ -343,7 +343,7 @@ form <-
 # Get model matrix
 X <- model.matrix(form, data = df)
 
-# Get hat matrix
+# Get hat matrix (THIS IS FOR OLS!)
 H <- X %*% solve(t(X) %*% X) %*% t(X)
 
 # Which model
@@ -372,10 +372,16 @@ plot.data <- data.frame(res = A.res,
                         Sex = data.for.strat$Sex)
 
 # plot residuals
-pdf("Figures/AnscombeResidExperimental.pdf", width = 6, height = 4, paper = 'special')
+#pdf("Figures/AnscombeResidExperimental.pdf", width = 6, height = 4, paper = 'special')
 ggplot(data = plot.data, aes(y = res, x = 1:length(res), col = Age:Sex)) +
   geom_point() +
   xlab("Observation") + 
   ylab("Anscombe residuals") +
   theme_bw()
-dev.off()
+#dev.off()
+
+
+
+
+min(H%*%y - mu)
+
