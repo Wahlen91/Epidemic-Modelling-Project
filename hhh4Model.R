@@ -256,6 +256,7 @@ model.control4.ba.wo.strat.od$end <- list(f = f_S4.ba, offset = population(dat))
 model.control4.ba.wo.strat.od$family <- "NegBin1"
 model.control4.wo.season.int$end <- 
   list(f = f_S4.wo.season.int, offset = population(dat))
+model.control4.wo.strat.od$end <- list(f = f_S4, offset = population(dat))
 model.control4.wo.strat.od$family <- "NegBin1"
 model.control6$end <- list(f = f_S6, offset = population(dat))
 model.control14$end <- list(f = f_S14, offset = population(dat))
