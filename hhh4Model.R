@@ -333,21 +333,26 @@ form <-
   I(s2008 * cos4) + I(s2009 * sin2) + I(s2009 * sin4) + I(s2009 * cos2) + 
   I(s2009 * cos4) + I(s2010 * sin2) + I(s2010 * sin4) + I(s2010 * cos2) +
   I(s2010 * cos4) + I(s2011 * sin2) + I(s2011 * sin4) + I(s2011 * cos2) + 
-  I(s2011 * cos4) + I(o104wk * A00_09 * Male)  + I(o104wk * A10_19 * Male) +
-  I(o104wk * A20_29 * Male) + I(o104wk * A30_39 * Male) +  I(o104wk * A40_49 * Male) + 
-  I(o104wk * A50_59 * Male) + I(o104wk * A60_69 * Male) + I(o104wk * A70plus * Male) + 
-  I(o104wk * A00_09 * Female)  + I(o104wk * A10_19 * Female) +
+  I(s2011 * cos4) + I(o104wk * A00_09 * Female)  + I(o104wk * A10_19 * Female) +
   I(o104wk * A20_29 * Female) + I(o104wk * A30_39 * Female) +  I(o104wk * A40_49 * Female) + 
-  I(o104wk * A50_59 * Female) + I(o104wk * A60_69 * Female) + I(o104wk * A70plus * Female)
+  I(o104wk * A50_59 * Female) + I(o104wk * A60_69 * Female) + I(o104wk * A70plus * Female) + 
+  I(o104wk * A00_09 * Male)  + I(o104wk * A10_19 * Male) +
+  I(o104wk * A20_29 * Male) + I(o104wk * A30_39 * Male) +  I(o104wk * A40_49 * Male) + 
+  I(o104wk * A50_59 * Male) + I(o104wk * A60_69 * Male) + I(o104wk * A70plus * Male)
+
 
 # Get model matrix
 X <- model.matrix(form, data = df)
+X <- X[, c(2, 1, 3:ncol(X))]
 
 # Get hat matrix (THIS IS FOR OLS!)
 H <- X %*% solve(t(X) %*% X) %*% t(X)
 
 # Which model
 model <- hhh4Model4.wo.strat.od
+
+# Coefficients
+beta <- coefficients(model)[-length(coefficients(model))]
 
 # Take out observed
 y <- as.numeric(model$stsObj@observed[-1, ])
@@ -363,25 +368,25 @@ A.res <- 3/2 * (y^(2/3) * mu^(-1/6) - mu^(1/2))
 A.res <- A.res/sqrt(phi * (1 - diag(H)))
 
 # Plot the residuals
-plot(A.res)
+# plot(A.res)
 
 # Get age and sex
 data.for.strat <- alldata[-which(alldata$date == min(alldata$date)), ]
-plot.data <- data.frame(res = A.res,
+plot.data.anscombe <- data.frame(res = A.res,
                         Age = data.for.strat$Age,
                         Sex = data.for.strat$Sex)
 
 # plot residuals
 #pdf("Figures/AnscombeResidExperimental.pdf", width = 6, height = 4, paper = 'special')
-ggplot(data = plot.data, aes(y = res, x = 1:length(res), col = Age:Sex)) +
-  geom_point() +
-  xlab("Observation") + 
-  ylab("Anscombe residuals") +
-  theme_bw()
+#ggplot(data = plot.data, aes(y = res, x = 1:length(res), col = Age:Sex)) +
+#  geom_point() +
+#  xlab("Observation") + 
+#  ylab("Anscombe residuals") +
+#  theme_bw()
 #dev.off()
 
+#save(plot.data.anscombe, file = "Models/plotdfAnscombe.RData")
 
 
 
-min(H%*%y - mu)
 
