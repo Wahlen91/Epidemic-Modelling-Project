@@ -389,13 +389,13 @@ plot.data.anscombe <- data.frame(res = A.res,
 
 
 # One step ahead prediction
-hhh4Model4.wo.strat.od
-test <- pit(hhh4Model4.wo.strat.od)
-pred <- oneStepAhead(hhh4Model4.wo.strat.od, nrow(dat)-40, type="rolling",
-                     which.start="final", verbose=FALSE)
+#hhh4Model4.wo.strat.od
+#test <- pit(hhh4Model4.wo.strat.od)
+#pred <- oneStepAhead(hhh4Model4.wo.strat.od, nrow(dat)-40, type="rolling",
+#                     which.start="final", verbose=FALSE)
 
-model <- hhh4Model4.wo.strat.od
-plot(1:467, rowSums(model$fitted.values), type = "l")
-lines(1:467, rowSums(dat@observed[-1, ]), col = "red")
+#model <- hhh4Model4.wo.strat.od
+#plot(1:467, rowSums(model$fitted.values), type = "l")
+#lines(1:467, rowSums(dat@observed[-1, ]), col = "red")
 
 
