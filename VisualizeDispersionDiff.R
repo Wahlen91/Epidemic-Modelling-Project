@@ -6,13 +6,13 @@ library("dplyr")
 nogrid_theme = theme(panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(),
                      axis.line = element_line(size = .35, color = "black"),
-                     axis.text = element_text(size = 12), 
-                     axis.title = element_text(size = 12, face = "bold"),
+                     axis.text = element_text(size = 10), 
+                     axis.title = element_text(size = 10),#, face = "bold"),
                      axis.text.x = element_text(size = 10), 
-                     axis.title.x = element_text(size = 10, face = "bold"),
+                     axis.title.x = element_text(size = 10),#, face = "bold"),
                      strip.background = element_blank(),
-                     strip.text.x = element_text(size = 14, face = "bold"),
-                     strip.text.y = element_text(size = 14, face = "bold"))
+                     strip.text.x = element_text(size = 14),#, face = "bold"),
+                     strip.text.y = element_text(size = 14)#, face = "bold"))
 
 # Load data
 alldata <- read.csv("Data/alldata.csv")
@@ -24,11 +24,11 @@ alldata <- alldata %>% mutate(incidence = Cases*100000/PopSmooth)
 # Plot cases split on Age and Sex
 pdf("Figures/AgeSexCases.pdf", width=4, height=4, paper='special') 
 ggplot(data = alldata, aes(x = Age, y = incidence, fill = Age)) +
-  geom_boxplot(width = 0.5) + 
+  geom_boxplot(outlier.size = 1, width = 0.5, size = 0.5) + 
   facet_grid(. ~ Sex) +
   theme_classic() +
   nogrid_theme + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   scale_fill_brewer(type = "div", palette = 5) +
   guides(fill = FALSE) +
   ylab("Incidence (per 100,000 population)") +
