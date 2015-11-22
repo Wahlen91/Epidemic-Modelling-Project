@@ -21,7 +21,7 @@ alldata$hhh4PredCases[-1] <- rowSums(hhh4Model4.wo.strat.od$fitted.values)
 
 
 # Plot whole time series
-pdf("Figures/PredictionsAndObserved.pdf", width = 6, height = 4, paper = 'special') 
+pdf("Figures/PredictionsAndObserved.pdf", width = 12, height = 8, paper = 'special') 
 ggplot(data = alldata) +
   geom_line(aes(x = date, y = Cases, color = FALSE), size = 1) +
   geom_line(aes(x = date, y = PredCases, color = TRUE), size = 1) +
@@ -29,8 +29,10 @@ ggplot(data = alldata) +
   scale_color_brewer(" ",
                      labels = c("Observed counts", "NegBin predicted counts",
                                 "hhh4 predicted counts"),
-                     type = "qual", palette = 2) +
+                     type = "qual", palette = "Set1") +
   xlab("Time (week)") + ylab("No. cases reported") +
   scale_y_continuous(expand = c(0,0), limits = c(0, 9500)) +
   theme_bw()
 dev.off()
+
+
